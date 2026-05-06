@@ -37,25 +37,66 @@
         </table>
     </div>
 </div>
-<script>
+   <script>
     window.onload = () => {
-        const saved = JSON.parse(localStorage.getItem('macroData') || '[]');
-        saved.forEach(renderRow);
+        updateTotals();
     };
+
+    function updateTotals() {
+        const saved = JSON.parse(localStorage.getItem('macroData') || '[]');
+        const tableBody = document.getElementById('tableBody');
+        tableBody.innerHTML = ''; // Clear current table
+
+        let totalP = 0, totalC = 0, totalF = 0, totalCal = 0, totalSteps = 0;
+
+        saved.forEach(e => {
+            totalP += e.p;
+            totalC += e.c;
+            totalF += e.f;
+            totalCal += e.calories;
+            totalSteps += e.s;
+            renderRow(e);
+        });
+
+        // Update a "Running Tab" header if you add one, 
+        // or just add a special "TOTAL" row at the top
+        renderTotalRow(totalP, totalC, totalF, totalCal, totalSteps);
+    }
+
     function addRow() {
         const p = parseFloat(document.getElementById('protein').value) || 0;
         const c = parseFloat(document.getElementById('carbs').value) || 0;
         const f = parseFloat(document.getElementById('fat').value) || 0;
         const s = parseInt(document.getElementById('steps').value) || 0;
-        const entry = { date: new Date().toLocaleDateString(), p, c, f, calories: (p*4)+(c*4)+(f*9), s };
+        
+        const entry = { 
+            date: new Date().toLocaleDateString(), 
+            p, c, f, 
+            calories: (p * 4) + (c * 4) + (f * 9), 
+            s 
+        };
+
         const saved = JSON.parse(localStorage.getItem('macroData') || '[]');
         saved.unshift(entry);
         localStorage.setItem('macroData', JSON.stringify(saved));
-        renderRow(entry, true);
+        
+        updateTotals(); // Refresh the whole table and running tab
+
+        // Clear inputs
+        document.querySelectorAll('input').forEach(input => input.value = '');
     }
-    function renderRow(e, atTop = false) {
-        const row = document.getElementById('tableBody').insertRow(atTop ? 0 : -1);
-        row.innerHTML = `<td>${e.date}</td><td>${e.p}g</td><td>${e.c}g</td><td>${e.f}g</td><td>${e.calories}</td><td>${e.s}</td>`;
+
+    function renderRow(e) {
+        const row = document.getElementById('tableBody').insertRow(-1);
+        row.innerHTML = `<td>${e.date}</td><td>${e.p}g</td><td>${e.c}g</td><td>${e.f}g</td><td>${e.calories}</td><td>${e.s.toLocaleString()}</td>`;
+    }
+
+    function renderTotalRow(p, c, f, cal, s) {
+        const tableBody = document.getElementById('tableBody');
+        const row = tableBody.insertRow(0); // Put the running tab at the very top
+        row.style.backgroundColor = "#e2e8f0";
+        row.style.fontWeight = "bold";
+        row.innerHTML = `<td>RUNNING TAB</td><td>${p}g</td><td>${c}g</td><td>${f}g</td><td>${cal}</td><td>${s.toLocaleString()}</td>`;
     }
 </script>
 </body>
