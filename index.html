@@ -3,40 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hit Goal Weight in 90 Days</title>
+    <title>Drop 20+ lbs. in 90 Days</title>
     <style>
         :root { --primary: #2563eb; --bg: #f8fafc; --card: #ffffff; --text: #1e293b; --accent: #0f172a; }
         body { font-family: sans-serif; background-color: var(--bg); color: var(--text); padding: 20px; display: flex; flex-direction: column; align-items: center; }
         .container { max-width: 900px; width: 100%; }
         .card { background: var(--card); padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); margin-bottom: 1.5rem; }
         .header { text-align: center; margin-bottom: 2rem; }
-        .header h1 { font-size: 2.5rem; color: var(--accent); margin-bottom: 0.5rem; }
-        .grid-inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+        .header h1 { font-size: 2.5rem; color: var(--accent); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: -1px; }
+        .guidelines { background: #eff6ff; border-left: 5px solid var(--primary); padding: 1rem; margin-bottom: 1.5rem; border-radius: 0 8px 8px 0; }
+        .guidelines ul { margin: 0; padding-left: 1.2rem; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        @media (max-width: 600px) { .guidelines ul { grid-template-columns: 1fr; } }
+        .grid-inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
         .input-group { display: flex; flex-direction: column; }
         label { font-size: 0.8rem; font-weight: 600; margin-bottom: 0.3rem; color: #64748b; }
         input { padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 6px; }
         button { background-color: var(--primary); color: white; border: none; padding: 0.75rem; border-radius: 6px; font-weight: 600; cursor: pointer; width: 100%; }
         .search-container { position: relative; margin-bottom: 1rem; }
-        #searchResults { position: absolute; background: white; width: 100%; z-index: 10; border: 1px solid #ddd; border-radius: 6px; display: none; }
+        #searchResults { position: absolute; background: white; width: 100%; z-index: 10; border: 1px solid #ddd; border-radius: 6px; display: none; max-height: 200px; overflow-y: auto; }
         .search-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; }
         .search-item:hover { background: #f1f5f9; }
         .goals-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
         .goal-result { font-size: 1.2rem; font-weight: bold; color: var(--primary); margin-top: 0.5rem; }
         table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-        th, td { padding: 0.8rem; border-bottom: 1px solid #f1f5f9; text-align: left; }
+        th, td { padding: 0.8rem; border-bottom: 1px solid #f1f5f9; text-align: left; font-size: 0.9rem; }
         .total-row { background-color: #e2e8f0; font-weight: bold; }
+        .food-ref { font-size: 0.8rem; color: #64748b; margin-top: 0.5rem; line-height: 1.4; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="header">
-        <h1>Hit Goal Weight in 90 Days</h1>
+        <h1>Drop 20+ lbs. in 90 Days</h1>
+    </div>
+
+    <!-- Success Guidelines -->
+    <div class="guidelines">
+        <h3 style="margin-top: 0;">The 90-Day Protocol</h3>
+        <ul>
+            <li>Walk 15K steps daily</li>
+            <li>Eat single ingredient foods (90% min)</li>
+            <li>Lift weights 3-4x a week</li>
+            <li>Carbs centered around training</li>
+            <li>No alcohol</li>
+            <li>Limit eating out (opt for single ingredient)</li>
+            <li>Adjust calories every 2 weeks if needed</li>
+            <li>Sleep is king (7-8 hours minimum)</li>
+        </ul>
     </div>
 
     <!-- Goals Section -->
     <div class="card">
-        <h3>Daily Target Reference</h3>
+        <h3>Target Calculation</h3>
         <div class="goals-grid">
             <div class="input-group">
                 <label>Desired Weight (lbs) x 11 (Daily Cal)</label>
@@ -51,32 +70,39 @@
         </div>
     </div>
 
-    <!-- Food Search Section -->
+    <!-- Food Search & Suggestions -->
     <div class="card">
-        <h3>Quick Food Search</h3>
+        <h3>Quick Food Lookup</h3>
         <div class="search-container">
-            <input type="text" id="foodSearch" placeholder="Search for food (e.g. Chicken, Eggs, Rice)..." oninput="searchFood()" style="width: 100%; box-sizing: border-box;">
+            <input type="text" id="foodSearch" placeholder="Search Eggs, Chicken, Steak, Rice, Avocados..." oninput="searchFood()" style="width: 100%; box-sizing: border-box;">
             <div id="searchResults"></div>
+        </div>
+        <div class="food-ref">
+            <strong>Suggestions:</strong><br>
+            Protein: Eggs, Chicken, Fish, Steak, Turkey, Yogurt<br>
+            Carbs: Potatoes, Quinoa, Rice, Oats, Fruits & Veggies<br>
+            Fats: Avocados, EVOO, Raw Almonds, Chia Seeds
         </div>
     </div>
 
     <!-- Entry Section -->
     <div class="card">
         <div class="grid-inputs">
+            <div class="input-group"><label>Current Weight</label><input type="number" step="0.1" id="currentWeight"></div>
             <div class="input-group"><label>Calories</label><input type="number" id="calories"></div>
             <div class="input-group"><label>Protein (g)</label><input type="number" id="protein"></div>
             <div class="input-group"><label>Carbs (g)</label><input type="number" id="carbs"></div>
             <div class="input-group"><label>Fat (g)</label><input type="number" id="fat"></div>
             <div class="input-group"><label>Steps</label><input type="number" id="steps"></div>
         </div>
-        <button onclick="addRow()">Add Daily Entry</button>
+        <button onclick="addRow()">Log Daily Progress</button>
     </div>
 
     <!-- Log Section -->
     <div class="card" style="overflow-x: auto;">
         <table>
             <thead>
-                <tr><th>Date</th><th>Protein</th><th>Carbs</th><th>Fat</th><th>Calories</th><th>Steps</th></tr>
+                <tr><th>Date</th><th>Weight</th><th>Protein</th><th>Carbs</th><th>Fat</th><th>Calories</th><th>Steps</th></tr>
             </thead>
             <tbody id="tableBody"></tbody>
         </table>
@@ -84,16 +110,23 @@
 </div>
 
 <script>
-    // Simulated Food Database
+    // Expanded Database with requested suggestions
     const foodDB = [
+        { name: "Egg (Large/1)", cal: 70, p: 6, c: 0, f: 5 },
         { name: "Chicken Breast (6oz)", cal: 280, p: 52, c: 0, f: 6 },
-        { name: "Large Egg (1)", cal: 70, p: 6, c: 0, f: 5 },
-        { name: "White Rice (1 cup)", cal: 205, p: 4, c: 45, f: 0 },
+        { name: "Fish/Salmon (6oz)", cal: 350, p: 34, c: 0, f: 22 },
+        { name: "Steak/Beef (6oz)", cal: 420, p: 42, c: 0, f: 28 },
+        { name: "Turkey Breast (6oz)", cal: 230, p: 48, c: 0, f: 3 },
+        { name: "Greek Yogurt (1 cup)", cal: 150, p: 25, c: 7, f: 0 },
+        { name: "Potatoes (Medium)", cal: 160, p: 4, c: 37, f: 0 },
+        { name: "Quinoa (1 cup cooked)", cal: 220, p: 8, c: 39, f: 4 },
+        { name: "White Rice (1 cup cooked)", cal: 205, p: 4, c: 45, f: 0 },
+        { name: "Oats (1 cup cooked)", cal: 150, p: 5, c: 27, f: 3 },
+        { name: "Apple/Fruit (Medium)", cal: 95, p: 0, c: 25, f: 0 },
         { name: "Avocado (Medium)", cal: 240, p: 3, c: 12, f: 22 },
-        { name: "Ground Beef 80/20 (4oz)", cal: 287, p: 19, c: 0, f: 23 },
-        { name: "Salmon Fillet (6oz)", cal: 350, p: 34, c: 0, f: 22 },
-        { name: "Oatmeal (1 cup)", cal: 150, p: 5, c: 27, f: 3 },
-        { name: "Peanut Butter (2 tbsp)", cal: 190, p: 8, c: 6, f: 16 }
+        { name: "EVOO (1 tbsp)", cal: 120, p: 0, c: 0, f: 14 },
+        { name: "Raw Almonds (1oz/23 nuts)", cal: 160, p: 6, c: 6, f: 14 },
+        { name: "Chia Seeds (2 tbsp)", cal: 138, p: 5, c: 12, f: 9 }
     ];
 
     window.onload = () => {
@@ -107,23 +140,18 @@
         const query = document.getElementById('foodSearch').value.toLowerCase();
         const resultsDiv = document.getElementById('searchResults');
         resultsDiv.innerHTML = '';
-        
         if (query.length < 2) { resultsDiv.style.display = 'none'; return; }
-
         const filtered = foodDB.filter(f => f.name.toLowerCase().includes(query));
-        
         if (filtered.length > 0) {
             resultsDiv.style.display = 'block';
             filtered.forEach(item => {
                 const div = document.createElement('div');
                 div.className = 'search-item';
-                div.innerText = `${item.name} - ${item.cal} Cal`;
+                div.innerText = `${item.name}`;
                 div.onclick = () => selectFood(item);
                 resultsDiv.appendChild(div);
             });
-        } else {
-            resultsDiv.style.display = 'none';
-        }
+        } else { resultsDiv.style.display = 'none'; }
     }
 
     function selectFood(item) {
@@ -152,16 +180,17 @@
         saved.forEach(e => {
             tP += e.p; tC += e.c; tF += e.f; tCal += e.cal; tS += e.s;
             const row = tableBody.insertRow(-1);
-            row.innerHTML = `<td>${e.date}</td><td>${e.p}g</td><td>${e.c}g</td><td>${e.f}g</td><td>${e.cal}</td><td>${e.s.toLocaleString()}</td>`;
+            row.innerHTML = `<td>${e.date}</td><td>${e.w || '--'}</td><td>${e.p}g</td><td>${e.c}g</td><td>${e.f}g</td><td>${e.cal}</td><td>${e.s.toLocaleString()}</td>`;
         });
         const totalRow = tableBody.insertRow(0);
         totalRow.className = "total-row";
-        totalRow.innerHTML = `<td>TOTALS</td><td>${tP}g</td><td>${tC}g</td><td>${tF}g</td><td>${tCal}</td><td>${tS.toLocaleString()}</td>`;
+        totalRow.innerHTML = `<td>TOTALS</td><td>--</td><td>${tP}g</td><td>${tC}g</td><td>${tF}g</td><td>${tCal}</td><td>${tS.toLocaleString()}</td>`;
     }
 
     function addRow() {
         const entry = {
             date: new Date().toLocaleDateString(),
+            w: document.getElementById('currentWeight').value,
             cal: parseFloat(document.getElementById('calories').value) || 0,
             p: parseFloat(document.getElementById('protein').value) || 0,
             c: parseFloat(document.getElementById('carbs').value) || 0,
