@@ -64,15 +64,6 @@
     </div>
 
     <div class="card">
-        <h3>Single-Ingredient Suggestions</h3>
-        <div class="food-ref">
-            <strong>Proteins:</strong> Eggs, Chicken, Fish, Steak, Turkey, Yogurt<br>
-            <strong>Carbs:</strong> Potatoes, Quinoa, Rice, Oats, Fruits & Veggies<br>
-            <strong>Fats:</strong> Avocados, EVOO, Raw Almonds, Chia Seeds
-        </div>
-    </div>
-
-    <div class="card">
         <h3>Target Calculation</h3>
         <div class="goals-grid">
             <div class="input-group">
@@ -103,7 +94,7 @@
             <div class="input-group"><label>Protein (g)</label><input type="number" id="protein"></div>
             <div class="input-group"><label>Carbs (g)</label><input type="number" id="carbs"></div>
             <div class="input-group"><label>Fat (g)</label><input type="number" id="fat"></div>
-            <div class="input-group"><label>Steps</label><input type="number" id="steps"></div>
+            <div class="input-group"><label>Steps (Final Count)</label><input type="number" id="steps"></div>
         </div>
         <button onclick="addRow()">Log Progress</button>
     </div>
@@ -146,14 +137,14 @@
             p: parseFloat(document.getElementById('protein').value) || 0,
             c: parseFloat(document.getElementById('carbs').value) || 0,
             f: parseFloat(document.getElementById('fat').value) || 0,
-            s: parseInt(document.getElementById('steps').value) || 0
+            s: parseInt(document.getElementById('steps').value) || 0,
+            timestamp: Date.now() // Track most recent entry
         };
         const saved = JSON.parse(localStorage.getItem('macroData') || '[]');
         saved.unshift(entry);
         localStorage.setItem('macroData', JSON.stringify(saved));
         updateDisplay();
         
-        // Clear specific inputs after logging[cite: 2]
         document.getElementById('mealName').value = '';
         document.getElementById('workoutDesc').value = '';
         document.getElementById('calories').value = '';
@@ -170,13 +161,20 @@
 
         const grouped = saved.reduce((acc, obj) => {
             const key = obj.date;
-            if (!acc[key]) acc[key] = { items: [], totals: { p: 0, c: 0, f: 0, cal: 0, s: 0, weight: '--' } };
+            if (!acc[key]) acc[key] = { items: [], totals: { p: 0, c: 0, f: 0, cal: 0, s: 0, weight: '--' }, lastStepUpdate: 0 };
+            
             acc[key].items.push(obj);
             acc[key].totals.p += obj.p;
             acc[key].totals.c += obj.c;
             acc[key].totals.f += obj.f;
             acc[key].totals.cal += obj.cal;
-            acc[key].totals.s += obj.s;
+            
+            // Logic change: Only take the step count from the most recent entry
+            if (obj.s > 0 && obj.timestamp >= acc[key].lastStepUpdate) {
+                acc[key].totals.s = obj.s;
+                acc[key].lastStepUpdate = obj.timestamp;
+            }
+            
             if (obj.w) acc[key].totals.weight = obj.w;
             return acc;
         }, {});
@@ -192,7 +190,8 @@
             day.items.forEach(item => {
                 const row = tableBody.insertRow(-1);
                 let workoutHTML = item.workout ? `<span class="workout-note">${item.workout}</span>` : '';
-                row.innerHTML = `<td><strong>${item.name}</strong>${workoutHTML}</td><td>--</td><td>${item.p}g</td><td>${item.c}g</td><td>${item.f}g</td><td>${item.cal}</td><td>${item.s.toLocaleString()}</td>`;
+                // Individual entry column for steps shows what was entered at that time
+                row.innerHTML = `<td><strong>${item.name}</strong>${workoutHTML}</td><td>--</td><td>${item.p}g</td><td>${item.c}g</td><td>${item.f}g</td><td>${item.cal}</td><td>${item.s > 0 ? item.s.toLocaleString() : '--'}</td>`;
             });
 
             grandTotal.p += day.totals.p;
@@ -208,4 +207,4 @@
     }
 </script>
 </body>
-</html>l>
+</html>
