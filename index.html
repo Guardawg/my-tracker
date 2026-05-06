@@ -10,7 +10,6 @@
         .container { max-width: 900px; width: 100%; }
         .card { background: var(--card); padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); margin-bottom: 1.5rem; }
         
-        /* Header and Avatar Styles[cite: 2] */
         .header { text-align: center; margin-bottom: 2rem; position: relative; }
         .header h1 { font-size: 2.2rem; color: var(--accent); margin: 1rem 0; text-transform: uppercase; letter-spacing: -1px; }
         .avatar-container { display: flex; justify-content: center; gap: 40px; margin-bottom: 10px; }
@@ -26,11 +25,6 @@
         input { padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 6px; }
         button { background-color: var(--primary); color: white; border: none; padding: 0.75rem; border-radius: 6px; font-weight: 600; cursor: pointer; width: 100%; }
         
-        .search-container { position: relative; margin-bottom: 1rem; }
-        #searchResults { position: absolute; background: white; width: 100%; z-index: 10; border: 1px solid #ddd; border-radius: 6px; display: none; max-height: 200px; overflow-y: auto; }
-        .search-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; }
-        .search-item:hover { background: #f1f5f9; }
-        
         .goals-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
         .goal-result { font-size: 1.2rem; font-weight: bold; color: var(--primary); margin-top: 0.5rem; }
         
@@ -38,7 +32,7 @@
         th, td { padding: 0.8rem; border-bottom: 1px solid #f1f5f9; text-align: left; font-size: 0.9rem; }
         .daily-sum-row { background-color: #f1f5f9; font-weight: bold; border-top: 2px solid #cbd5e1; }
         .grand-total-row { background-color: #1e293b; color: white; font-weight: bold; }
-        .food-ref { font-size: 0.8rem; color: #64748b; margin-top: 0.5rem; line-height: 1.4; }
+        .food-ref { font-size: 0.9rem; color: #1e293b; line-height: 1.6; }
     </style>
 </head>
 <body>
@@ -52,7 +46,6 @@
         <h1>Drop 20+ lbs. in 90 Days</h1>
     </div>
 
-    <!-- Rest of the code remains the same[cite: 2] -->
     <div class="guidelines">
         <h3 style="margin-top: 0;">The 90-Day Protocol</h3>
         <ul>
@@ -61,10 +54,19 @@
             <li>Lift weights 3-4x a week</li>
             <li>Carbs centered around training</li>
             <li>No alcohol</li>
-            <li>Limit eating out (opt for single ingredient)</li>
+            <li>Limit eating out</li>
             <li>Adjust calories every 2 weeks if needed</li>
             <li>Sleep is king (7-8 hours minimum)</li>
         </ul>
+    </div>
+
+    <div class="card">
+        <h3>Single-Ingredient Suggestions</h3>
+        <div class="food-ref">
+            <strong>Proteins:</strong> Eggs, Chicken, Fish, Steak, Turkey, Yogurt<br>
+            <strong>Carbs:</strong> Potatoes, Quinoa, Rice, Oats, Fruits & Veggies<br>
+            <strong>Fats:</strong> Avocados, EVOO, Raw Almonds, Chia Seeds
+        </div>
     </div>
 
     <div class="card">
@@ -84,20 +86,6 @@
     </div>
 
     <div class="card">
-        <h3>Quick Food Lookup</h3>
-        <div class="search-container">
-            <input type="text" id="foodSearch" placeholder="Search Eggs, Chicken, Steak, Rice, Avocados..." oninput="searchFood()" style="width: 100%; box-sizing: border-box;">
-            <div id="searchResults"></div>
-        </div>
-        <div class="food-ref">
-            <strong>Suggestions:</strong><br>
-            Protein: Eggs, Chicken, Fish, Steak, Turkey, Yogurt<br>
-            Carbs: Potatoes, Quinoa, Rice, Oats, Fruits & Veggies<br>
-            Fats: Avocados, EVOO, Raw Almonds, Chia Seeds
-        </div>
-    </div>
-
-    <div class="card">
         <div class="grid-inputs">
             <div class="input-group"><label>Current Weight</label><input type="number" step="0.1" id="currentWeight"></div>
             <div class="input-group"><label>Calories</label><input type="number" id="calories"></div>
@@ -106,7 +94,7 @@
             <div class="input-group"><label>Fat (g)</label><input type="number" id="fat"></div>
             <div class="input-group"><label>Steps</label><input type="number" id="steps"></div>
         </div>
-        <button onclick="addRow()">Log Progress</button>
+        <button onclick="addRow()">Log Daily Progress</button>
     </div>
 
     <div class="card" style="overflow-x: auto;">
@@ -121,58 +109,12 @@
 </div>
 
 <script>
-    // Database and Logic remain unchanged from the previous daily-reset version[cite: 2]
-    const foodDB = [
-        { name: "Egg (Large/1)", cal: 70, p: 6, c: 0, f: 5 },
-        { name: "Chicken Breast (6oz)", cal: 280, p: 52, c: 0, f: 6 },
-        { name: "Fish/Salmon (6oz)", cal: 350, p: 34, c: 0, f: 22 },
-        { name: "Steak/Beef (6oz)", cal: 420, p: 42, c: 0, f: 28 },
-        { name: "Turkey Breast (6oz)", cal: 230, p: 48, c: 0, f: 3 },
-        { name: "Greek Yogurt (1 cup)", cal: 150, p: 25, c: 7, f: 0 },
-        { name: "Potatoes (Medium)", cal: 160, p: 4, c: 37, f: 0 },
-        { name: "Quinoa (1 cup cooked)", cal: 220, p: 8, c: 39, f: 4 },
-        { name: "White Rice (1 cup cooked)", cal: 205, p: 4, c: 45, f: 0 },
-        { name: "Oats (1 cup cooked)", cal: 150, p: 5, c: 27, f: 3 },
-        { name: "Apple/Fruit (Medium)", cal: 95, p: 0, c: 25, f: 0 },
-        { name: "Avocado (Medium)", cal: 240, p: 3, c: 12, f: 22 },
-        { name: "EVOO (1 tbsp)", cal: 120, p: 0, c: 0, f: 14 },
-        { name: "Raw Almonds (1oz/23 nuts)", cal: 160, p: 6, c: 6, f: 14 },
-        { name: "Chia Seeds (2 tbsp)", cal: 138, p: 5, c: 12, f: 9 }
-    ];
-
     window.onload = () => {
         document.getElementById('goalWeight').value = localStorage.getItem('goalWeight') || '';
         document.getElementById('goalHeight').value = localStorage.getItem('goalHeight') || '';
         calcGoals();
         updateDisplay();
     };
-
-    function searchFood() {
-        const query = document.getElementById('foodSearch').value.toLowerCase();
-        const resultsDiv = document.getElementById('searchResults');
-        resultsDiv.innerHTML = '';
-        if (query.length < 10) { resultsDiv.style.display = 'none'; return; }
-        const filtered = foodDB.filter(f => f.name.toLowerCase().includes(query));
-        if (filtered.length > 0) {
-            resultsDiv.style.display = 'block';
-            filtered.forEach(item => {
-                const div = document.createElement('div');
-                div.className = 'search-item';
-                div.innerText = item.name;
-                div.onclick = () => selectFood(item);
-                resultsDiv.appendChild(div);
-            });
-        } else { resultsDiv.style.display = 'none'; }
-    }
-
-    function selectFood(item) {
-        document.getElementById('calories').value = item.cal;
-        document.getElementById('protein').value = item.p;
-        document.getElementById('carbs').value = item.c;
-        document.getElementById('fat').value = item.f;
-        document.getElementById('foodSearch').value = '';
-        document.getElementById('searchResults').style.display = 'none';
-    }
 
     function calcGoals() {
         const weight = parseFloat(document.getElementById('goalWeight').value) || 0;
@@ -197,7 +139,13 @@
         saved.unshift(entry);
         localStorage.setItem('macroData', JSON.stringify(saved));
         updateDisplay();
-        document.querySelectorAll('.grid-inputs input').forEach(i => i.id !== 'currentWeight' ? i.value = '' : null);
+        
+        // Clear all except weight[cite: 2]
+        document.getElementById('calories').value = '';
+        document.getElementById('protein').value = '';
+        document.getElementById('carbs').value = '';
+        document.getElementById('fat').value = '';
+        document.getElementById('steps').value = '';
     }
 
     function updateDisplay() {
@@ -228,7 +176,7 @@
 
             day.items.forEach(item => {
                 const row = tableBody.insertRow(-1);
-                row.innerHTML = `<td>Meal/Activity</td><td>--</td><td>${item.p}g</td><td>${item.c}g</td><td>${item.f}g</td><td>${item.cal}</td><td>${item.s.toLocaleString()}</td>`;
+                row.innerHTML = `<td>Entry</td><td>--</td><td>${item.p}g</td><td>${item.c}g</td><td>${item.f}g</td><td>${item.cal}</td><td>${item.s.toLocaleString()}</td>`;
             });
 
             grandTotal.p += day.totals.p;
