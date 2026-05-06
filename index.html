@@ -5,100 +5,126 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Macro & Step Tracker</title>
     <style>
-        :root { --primary: #2563eb; --bg: #f8fafc; --card: #ffffff; --text: #1e293b; }
+        :root { --primary: #2563eb; --bg: #f8fafc; --card: #ffffff; --text: #1e293b; --accent: #0f172a; }
         body { font-family: sans-serif; background-color: var(--bg); color: var(--text); padding: 20px; display: flex; flex-direction: column; align-items: center; }
         .container { max-width: 900px; width: 100%; }
-        .input-card { background: var(--card); padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); margin-bottom: 2rem; }
-        .grid-inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+        .card { background: var(--card); padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); margin-bottom: 1.5rem; }
+        .grid-inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
         .input-group { display: flex; flex-direction: column; }
-        input { padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 6px; }
+        label { font-size: 0.8rem; font-weight: 600; margin-bottom: 0.3rem; color: #64748b; }
+        input { padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 6px; }
         button { background-color: var(--primary); color: white; border: none; padding: 0.75rem; border-radius: 6px; font-weight: 600; cursor: pointer; width: 100%; }
-        .table-container { background: var(--card); border-radius: 12px; overflow-x: auto; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
-        table { width: 100%; border-collapse: collapse; text-align: left; }
-        th, td { padding: 1rem; border-bottom: 1px solid #f1f5f9; }
+        .goals-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+        .goal-result { font-size: 1.2rem; font-weight: bold; color: var(--primary); margin-top: 0.5rem; }
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        th, td { padding: 0.8rem; border-bottom: 1px solid #f1f5f9; text-align: left; }
+        .total-row { background-color: #e2e8f0; font-weight: bold; }
     </style>
 </head>
 <body>
+
 <div class="container">
-    <h1>Macro & Step Tracker</h1>
-    <div class="input-card">
+    <h1>Fitness & Macro Tracker</h1>
+
+    <!-- Goals Section -->
+    <div class="card">
+        <h3>Daily Target Reference</h3>
+        <div class="goals-grid">
+            <div class="input-group">
+                <label>Desired Weight (lbs) x 11 (Daily Cal)</label>
+                <input type="number" id="goalWeight" placeholder="lbs" oninput="calcGoals()">
+                <div class="goal-result" id="calTarget">0 calories</div>
+            </div>
+            <div class="input-group">
+                <label>Height (cm) = Daily Protein (g)</label>
+                <input type="number" id="goalHeight" placeholder="cm" oninput="calcGoals()">
+                <div class="goal-result" id="proteinTarget">0g protein</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Entry Section -->
+    <div class="card">
         <div class="grid-inputs">
+            <div class="input-group"><label>Calories</label><input type="number" id="calories"></div>
             <div class="input-group"><label>Protein (g)</label><input type="number" id="protein"></div>
             <div class="input-group"><label>Carbs (g)</label><input type="number" id="carbs"></div>
             <div class="input-group"><label>Fat (g)</label><input type="number" id="fat"></div>
             <div class="input-group"><label>Steps</label><input type="number" id="steps"></div>
         </div>
-        <button onclick="addRow()">Add Entry</button>
+        <button onclick="addRow()">Add Daily Entry</button>
     </div>
-    <div class="table-container">
+
+    <!-- Log Section -->
+    <div class="card" style="overflow-x: auto;">
         <table>
-            <thead><tr><th>Date</th><th>Protein</th><th>Carbs</th><th>Fat</th><th>Calories</th><th>Steps</th></tr></thead>
+            <thead>
+                <tr><th>Date</th><th>Protein</th><th>Carbs</th><th>Fat</th><th>Calories</th><th>Steps</th></tr>
+            </thead>
             <tbody id="tableBody"></tbody>
         </table>
     </div>
 </div>
-   <script>
+
+<script>
     window.onload = () => {
         updateTotals();
+        // Load goal references from local storage
+        document.getElementById('goalWeight').value = localStorage.getItem('goalWeight') || '';
+        document.getElementById('goalHeight').value = localStorage.getItem('goalHeight') || '';
+        calcGoals();
     };
+
+    function calcGoals() {
+        const weight = parseFloat(document.getElementById('goalWeight').value) || 0;
+        const height = parseFloat(document.getElementById('goalHeight').value) || 0;
+        
+        // Calculation: Desired Weight x 11[cite: 2]
+        document.getElementById('calTarget').innerText = (weight * 11).toLocaleString() + " calories";
+        // Calculation: 1g of protein per cm of height[cite: 2]
+        document.getElementById('proteinTarget').innerText = height + "g protein";
+
+        localStorage.setItem('goalWeight', weight);
+        localStorage.setItem('goalHeight', height);
+    }
 
     function updateTotals() {
         const saved = JSON.parse(localStorage.getItem('macroData') || '[]');
         const tableBody = document.getElementById('tableBody');
-        tableBody.innerHTML = ''; // Clear current table
+        tableBody.innerHTML = ''; 
 
-        let totalP = 0, totalC = 0, totalF = 0, totalCal = 0, totalSteps = 0;
+        let tP = 0, tC = 0, tF = 0, tCal = 0, tS = 0;
 
         saved.forEach(e => {
-            totalP += e.p;
-            totalC += e.c;
-            totalF += e.f;
-            totalCal += e.calories;
-            totalSteps += e.s;
-            renderRow(e);
+            tP += e.p; tC += e.c; tF += e.f; tCal += e.cal; tS += e.s;
+            const row = tableBody.insertRow(-1);
+            row.innerHTML = `<td>${e.date}</td><td>${e.p}g</td><td>${e.c}g</td><td>${e.f}g</td><td>${e.cal}</td><td>${e.s.toLocaleString()}</td>`;
         });
 
-        // Update a "Running Tab" header if you add one, 
-        // or just add a special "TOTAL" row at the top
-        renderTotalRow(totalP, totalC, totalF, totalCal, totalSteps);
+        // Insert running totals row at the top[cite: 2]
+        const totalRow = tableBody.insertRow(0);
+        totalRow.className = "total-row";
+        totalRow.innerHTML = `<td>TOTALS</td><td>${tP}g</td><td>${tC}g</td><td>${tF}g</td><td>${tCal}</td><td>${tS.toLocaleString()}</td>`;
     }
 
     function addRow() {
-        const p = parseFloat(document.getElementById('protein').value) || 0;
-        const c = parseFloat(document.getElementById('carbs').value) || 0;
-        const f = parseFloat(document.getElementById('fat').value) || 0;
-        const s = parseInt(document.getElementById('steps').value) || 0;
-        
-        const entry = { 
-            date: new Date().toLocaleDateString(), 
-            p, c, f, 
-            calories: (p * 4) + (c * 4) + (f * 9), 
-            s 
+        const entry = {
+            date: new Date().toLocaleDateString(),
+            cal: parseFloat(document.getElementById('calories').value) || 0,
+            p: parseFloat(document.getElementById('protein').value) || 0,
+            c: parseFloat(document.getElementById('carbs').value) || 0,
+            f: parseFloat(document.getElementById('fat').value) || 0,
+            s: parseInt(document.getElementById('steps').value) || 0
         };
 
         const saved = JSON.parse(localStorage.getItem('macroData') || '[]');
         saved.unshift(entry);
         localStorage.setItem('macroData', JSON.stringify(saved));
+        updateTotals();
         
-        updateTotals(); // Refresh the whole table and running tab
-
-        // Clear inputs
-        document.querySelectorAll('input').forEach(input => input.value = '');
-    }
-
-    function renderRow(e) {
-        const row = document.getElementById('tableBody').insertRow(-1);
-        row.innerHTML = `<td>${e.date}</td><td>${e.p}g</td><td>${e.c}g</td><td>${e.f}g</td><td>${e.calories}</td><td>${e.s.toLocaleString()}</td>`;
-    }
-
-    function renderTotalRow(p, c, f, cal, s) {
-        const tableBody = document.getElementById('tableBody');
-        const row = tableBody.insertRow(0); // Put the running tab at the very top
-        row.style.backgroundColor = "#e2e8f0";
-        row.style.fontWeight = "bold";
-        row.innerHTML = `<td>RUNNING TAB</td><td>${p}g</td><td>${c}g</td><td>${f}g</td><td>${cal}</td><td>${s.toLocaleString()}</td>`;
+        // Clear daily entry inputs only[cite: 2]
+        document.querySelectorAll('.grid-inputs input').forEach(i => i.value = '');
     }
 </script>
 </body>
 </html>
-</html>}
