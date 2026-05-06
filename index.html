@@ -27,7 +27,8 @@
         .goal-result { font-size: 1.2rem; font-weight: bold; color: var(--primary); margin-top: 0.5rem; }
         table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
         th, td { padding: 0.8rem; border-bottom: 1px solid #f1f5f9; text-align: left; font-size: 0.9rem; }
-        .total-row { background-color: #e2e8f0; font-weight: bold; }
+        .daily-sum-row { background-color: #f1f5f9; font-weight: bold; border-top: 2px solid #cbd5e1; }
+        .grand-total-row { background-color: #1e293b; color: white; font-weight: bold; }
         .food-ref { font-size: 0.8rem; color: #64748b; margin-top: 0.5rem; line-height: 1.4; }
     </style>
 </head>
@@ -38,7 +39,6 @@
         <h1>Drop 20+ lbs. in 90 Days</h1>
     </div>
 
-    <!-- Success Guidelines -->
     <div class="guidelines">
         <h3 style="margin-top: 0;">The 90-Day Protocol</h3>
         <ul>
@@ -53,7 +53,6 @@
         </ul>
     </div>
 
-    <!-- Goals Section -->
     <div class="card">
         <h3>Target Calculation</h3>
         <div class="goals-grid">
@@ -70,7 +69,6 @@
         </div>
     </div>
 
-    <!-- Food Search & Suggestions -->
     <div class="card">
         <h3>Quick Food Lookup</h3>
         <div class="search-container">
@@ -85,7 +83,6 @@
         </div>
     </div>
 
-    <!-- Entry Section -->
     <div class="card">
         <div class="grid-inputs">
             <div class="input-group"><label>Current Weight</label><input type="number" step="0.1" id="currentWeight"></div>
@@ -95,12 +92,12 @@
             <div class="input-group"><label>Fat (g)</label><input type="number" id="fat"></div>
             <div class="input-group"><label>Steps</label><input type="number" id="steps"></div>
         </div>
-        <button onclick="addRow()">Log Daily Progress</button>
+        <button onclick="addRow()">Log Progress</button>
     </div>
 
-    <!-- Log Section -->
     <div class="card" style="overflow-x: auto;">
-        <table>
+        <h3>Activity Log</h3>
+        <table id="logTable">
             <thead>
                 <tr><th>Date</th><th>Weight</th><th>Protein</th><th>Carbs</th><th>Fat</th><th>Calories</th><th>Steps</th></tr>
             </thead>
@@ -110,7 +107,6 @@
 </div>
 
 <script>
-    // Expanded Database with requested suggestions
     const foodDB = [
         { name: "Egg (Large/1)", cal: 70, p: 6, c: 0, f: 5 },
         { name: "Chicken Breast (6oz)", cal: 280, p: 52, c: 0, f: 6 },
@@ -130,10 +126,10 @@
     ];
 
     window.onload = () => {
-        updateTotals();
         document.getElementById('goalWeight').value = localStorage.getItem('goalWeight') || '';
         document.getElementById('goalHeight').value = localStorage.getItem('goalHeight') || '';
         calcGoals();
+        updateDisplay();
     };
 
     function searchFood() {
@@ -147,7 +143,7 @@
             filtered.forEach(item => {
                 const div = document.createElement('div');
                 div.className = 'search-item';
-                div.innerText = `${item.name}`;
+                div.innerText = item.name;
                 div.onclick = () => selectFood(item);
                 resultsDiv.appendChild(div);
             });
@@ -172,21 +168,6 @@
         localStorage.setItem('goalHeight', height);
     }
 
-    function updateTotals() {
-        const saved = JSON.parse(localStorage.getItem('macroData') || '[]');
-        const tableBody = document.getElementById('tableBody');
-        tableBody.innerHTML = ''; 
-        let tP = 0, tC = 0, tF = 0, tCal = 0, tS = 0;
-        saved.forEach(e => {
-            tP += e.p; tC += e.c; tF += e.f; tCal += e.cal; tS += e.s;
-            const row = tableBody.insertRow(-1);
-            row.innerHTML = `<td>${e.date}</td><td>${e.w || '--'}</td><td>${e.p}g</td><td>${e.c}g</td><td>${e.f}g</td><td>${e.cal}</td><td>${e.s.toLocaleString()}</td>`;
-        });
-        const totalRow = tableBody.insertRow(0);
-        totalRow.className = "total-row";
-        totalRow.innerHTML = `<td>TOTALS</td><td>--</td><td>${tP}g</td><td>${tC}g</td><td>${tF}g</td><td>${tCal}</td><td>${tS.toLocaleString()}</td>`;
-    }
-
     function addRow() {
         const entry = {
             date: new Date().toLocaleDateString(),
@@ -200,9 +181,57 @@
         const saved = JSON.parse(localStorage.getItem('macroData') || '[]');
         saved.unshift(entry);
         localStorage.setItem('macroData', JSON.stringify(saved));
-        updateTotals();
-        document.querySelectorAll('.grid-inputs input').forEach(i => i.value = '');
+        updateDisplay();
+        document.querySelectorAll('.grid-inputs input').forEach(i => i.id !== 'currentWeight' ? i.value = '' : null);
+    }
+
+    function updateDisplay() {
+        const saved = JSON.parse(localStorage.getItem('macroData') || '[]');
+        const tableBody = document.getElementById('tableBody');
+        tableBody.innerHTML = '';
+
+        // Group entries by date
+        const grouped = saved.reduce((acc, obj) => {
+            const key = obj.date;
+            if (!acc[key]) acc[key] = { items: [], totals: { p: 0, c: 0, f: 0, cal: 0, s: 0, weight: '--' } };
+            acc[key].items.push(obj);
+            acc[key].totals.p += obj.p;
+            acc[key].totals.c += obj.c;
+            acc[key].totals.f += obj.f;
+            acc[key].totals.cal += obj.cal;
+            acc[key].totals.s += obj.s;
+            if (obj.w) acc[key].totals.weight = obj.w;
+            return acc;
+        }, {});
+
+        let grandTotal = { p: 0, c: 0, f: 0, cal: 0, s: 0 };
+
+        Object.keys(grouped).forEach(date => {
+            const day = grouped[date];
+            
+            // Add Daily Total Row (The "Reset" visual)
+            const dayRow = tableBody.insertRow(-1);
+            dayRow.className = "daily-sum-row";
+            dayRow.innerHTML = `<td>${date} TOTAL</td><td>${day.totals.weight}</td><td>${day.totals.p}g</td><td>${day.totals.c}g</td><td>${day.totals.f}g</td><td>${day.totals.cal}</td><td>${day.totals.s.toLocaleString()}</td>`;
+
+            // Individual Items for that day
+            day.items.forEach(item => {
+                const row = tableBody.insertRow(-1);
+                row.innerHTML = `<td>Meal/Activity</td><td>--</td><td>${item.p}g</td><td>${item.c}g</td><td>${item.f}g</td><td>${item.cal}</td><td>${item.s.toLocaleString()}</td>`;
+            });
+
+            grandTotal.p += day.totals.p;
+            grandTotal.c += day.totals.c;
+            grandTotal.f += day.totals.f;
+            grandTotal.cal += day.totals.cal;
+            grandTotal.s += day.totals.s;
+        });
+
+        // Add 90-Day Grand Total Row
+        const grandRow = tableBody.insertRow(0);
+        grandRow.className = "grand-total-row";
+        grandRow.innerHTML = `<td>90-DAY TOTAL</td><td>--</td><td>${grandTotal.p}g</td><td>${grandTotal.c}g</td><td>${grandTotal.f}g</td><td>${grandTotal.cal}</td><td>${grandTotal.s.toLocaleString()}</td>`;
     }
 </script>
 </body>
-</html>
+</html>>
