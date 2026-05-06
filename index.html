@@ -21,18 +21,21 @@
         
         .grid-inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
         .input-group { display: flex; flex-direction: column; }
+        .full-width { grid-column: 1 / -1; }
         label { font-size: 0.8rem; font-weight: 600; margin-bottom: 0.3rem; color: #64748b; }
-        input { padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 6px; }
+        input, textarea { padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 6px; font-family: sans-serif; }
+        textarea { resize: vertical; min-height: 60px; }
         button { background-color: var(--primary); color: white; border: none; padding: 0.75rem; border-radius: 6px; font-weight: 600; cursor: pointer; width: 100%; }
         
         .goals-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
         .goal-result { font-size: 1.2rem; font-weight: bold; color: var(--primary); margin-top: 0.5rem; }
         
         table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-        th, td { padding: 0.8rem; border-bottom: 1px solid #f1f5f9; text-align: left; font-size: 0.9rem; }
+        th, td { padding: 0.8rem; border-bottom: 1px solid #f1f5f9; text-align: left; font-size: 0.9rem; vertical-align: top; }
         .daily-sum-row { background-color: #f1f5f9; font-weight: bold; border-top: 2px solid #cbd5e1; }
         .grand-total-row { background-color: #1e293b; color: white; font-weight: bold; }
         .food-ref { font-size: 0.9rem; color: #1e293b; line-height: 1.6; }
+        .workout-note { font-size: 0.8rem; color: #64748b; font-style: italic; margin-top: 4px; display: block; }
     </style>
 </head>
 <body>
@@ -87,6 +90,14 @@
 
     <div class="card">
         <div class="grid-inputs">
+            <div class="input-group full-width">
+                <label>Meal/Entry Name</label>
+                <input type="text" id="mealName" placeholder="e.g. Breakfast, Post-Workout, Walk">
+            </div>
+            <div class="input-group full-width">
+                <label>Workout Description (Optional)</label>
+                <textarea id="workoutDesc" placeholder="e.g. Chest/Triceps: 3x10 Bench Press, 3x12 Incline..."></textarea>
+            </div>
             <div class="input-group"><label>Current Weight</label><input type="number" step="0.1" id="currentWeight"></div>
             <div class="input-group"><label>Calories</label><input type="number" id="calories"></div>
             <div class="input-group"><label>Protein (g)</label><input type="number" id="protein"></div>
@@ -94,14 +105,14 @@
             <div class="input-group"><label>Fat (g)</label><input type="number" id="fat"></div>
             <div class="input-group"><label>Steps</label><input type="number" id="steps"></div>
         </div>
-        <button onclick="addRow()">Log Daily Progress</button>
+        <button onclick="addRow()">Log Progress</button>
     </div>
 
     <div class="card" style="overflow-x: auto;">
         <h3>Activity Log</h3>
         <table id="logTable">
             <thead>
-                <tr><th>Date</th><th>Weight</th><th>Protein</th><th>Carbs</th><th>Fat</th><th>Calories</th><th>Steps</th></tr>
+                <tr><th>Date / Entry</th><th>Weight</th><th>Protein</th><th>Carbs</th><th>Fat</th><th>Calories</th><th>Steps</th></tr>
             </thead>
             <tbody id="tableBody"></tbody>
         </table>
@@ -128,6 +139,8 @@
     function addRow() {
         const entry = {
             date: new Date().toLocaleDateString(),
+            name: document.getElementById('mealName').value || 'Entry',
+            workout: document.getElementById('workoutDesc').value || '',
             w: document.getElementById('currentWeight').value,
             cal: parseFloat(document.getElementById('calories').value) || 0,
             p: parseFloat(document.getElementById('protein').value) || 0,
@@ -140,7 +153,9 @@
         localStorage.setItem('macroData', JSON.stringify(saved));
         updateDisplay();
         
-        // Clear all except weight[cite: 2]
+        // Clear specific inputs after logging[cite: 2]
+        document.getElementById('mealName').value = '';
+        document.getElementById('workoutDesc').value = '';
         document.getElementById('calories').value = '';
         document.getElementById('protein').value = '';
         document.getElementById('carbs').value = '';
@@ -176,7 +191,8 @@
 
             day.items.forEach(item => {
                 const row = tableBody.insertRow(-1);
-                row.innerHTML = `<td>Entry</td><td>--</td><td>${item.p}g</td><td>${item.c}g</td><td>${item.f}g</td><td>${item.cal}</td><td>${item.s.toLocaleString()}</td>`;
+                let workoutHTML = item.workout ? `<span class="workout-note">${item.workout}</span>` : '';
+                row.innerHTML = `<td><strong>${item.name}</strong>${workoutHTML}</td><td>--</td><td>${item.p}g</td><td>${item.c}g</td><td>${item.f}g</td><td>${item.cal}</td><td>${item.s.toLocaleString()}</td>`;
             });
 
             grandTotal.p += day.totals.p;
@@ -192,4 +208,4 @@
     }
 </script>
 </body>
-</html>
+</html>l>
