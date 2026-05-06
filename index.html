@@ -3,17 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Macro & Step Tracker</title>
+    <title>Hit Goal Weight in 90 Days</title>
     <style>
         :root { --primary: #2563eb; --bg: #f8fafc; --card: #ffffff; --text: #1e293b; --accent: #0f172a; }
         body { font-family: sans-serif; background-color: var(--bg); color: var(--text); padding: 20px; display: flex; flex-direction: column; align-items: center; }
         .container { max-width: 900px; width: 100%; }
         .card { background: var(--card); padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); margin-bottom: 1.5rem; }
+        .header { text-align: center; margin-bottom: 2rem; }
+        .header h1 { font-size: 2.5rem; color: var(--accent); margin-bottom: 0.5rem; }
         .grid-inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
         .input-group { display: flex; flex-direction: column; }
         label { font-size: 0.8rem; font-weight: 600; margin-bottom: 0.3rem; color: #64748b; }
         input { padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 6px; }
         button { background-color: var(--primary); color: white; border: none; padding: 0.75rem; border-radius: 6px; font-weight: 600; cursor: pointer; width: 100%; }
+        .search-container { position: relative; margin-bottom: 1rem; }
+        #searchResults { position: absolute; background: white; width: 100%; z-index: 10; border: 1px solid #ddd; border-radius: 6px; display: none; }
+        .search-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; }
+        .search-item:hover { background: #f1f5f9; }
         .goals-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
         .goal-result { font-size: 1.2rem; font-weight: bold; color: var(--primary); margin-top: 0.5rem; }
         table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
@@ -24,7 +30,9 @@
 <body>
 
 <div class="container">
-    <h1>Fitness & Macro Tracker</h1>
+    <div class="header">
+        <h1>Hit Goal Weight in 90 Days</h1>
+    </div>
 
     <!-- Goals Section -->
     <div class="card">
@@ -40,6 +48,15 @@
                 <input type="number" id="goalHeight" placeholder="cm" oninput="calcGoals()">
                 <div class="goal-result" id="proteinTarget">0g protein</div>
             </div>
+        </div>
+    </div>
+
+    <!-- Food Search Section -->
+    <div class="card">
+        <h3>Quick Food Search</h3>
+        <div class="search-container">
+            <input type="text" id="foodSearch" placeholder="Search for food (e.g. Chicken, Eggs, Rice)..." oninput="searchFood()" style="width: 100%; box-sizing: border-box;">
+            <div id="searchResults"></div>
         </div>
     </div>
 
@@ -67,23 +84,62 @@
 </div>
 
 <script>
+    // Simulated Food Database
+    const foodDB = [
+        { name: "Chicken Breast (6oz)", cal: 280, p: 52, c: 0, f: 6 },
+        { name: "Large Egg (1)", cal: 70, p: 6, c: 0, f: 5 },
+        { name: "White Rice (1 cup)", cal: 205, p: 4, c: 45, f: 0 },
+        { name: "Avocado (Medium)", cal: 240, p: 3, c: 12, f: 22 },
+        { name: "Ground Beef 80/20 (4oz)", cal: 287, p: 19, c: 0, f: 23 },
+        { name: "Salmon Fillet (6oz)", cal: 350, p: 34, c: 0, f: 22 },
+        { name: "Oatmeal (1 cup)", cal: 150, p: 5, c: 27, f: 3 },
+        { name: "Peanut Butter (2 tbsp)", cal: 190, p: 8, c: 6, f: 16 }
+    ];
+
     window.onload = () => {
         updateTotals();
-        // Load goal references from local storage
         document.getElementById('goalWeight').value = localStorage.getItem('goalWeight') || '';
         document.getElementById('goalHeight').value = localStorage.getItem('goalHeight') || '';
         calcGoals();
     };
 
+    function searchFood() {
+        const query = document.getElementById('foodSearch').value.toLowerCase();
+        const resultsDiv = document.getElementById('searchResults');
+        resultsDiv.innerHTML = '';
+        
+        if (query.length < 2) { resultsDiv.style.display = 'none'; return; }
+
+        const filtered = foodDB.filter(f => f.name.toLowerCase().includes(query));
+        
+        if (filtered.length > 0) {
+            resultsDiv.style.display = 'block';
+            filtered.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'search-item';
+                div.innerText = `${item.name} - ${item.cal} Cal`;
+                div.onclick = () => selectFood(item);
+                resultsDiv.appendChild(div);
+            });
+        } else {
+            resultsDiv.style.display = 'none';
+        }
+    }
+
+    function selectFood(item) {
+        document.getElementById('calories').value = item.cal;
+        document.getElementById('protein').value = item.p;
+        document.getElementById('carbs').value = item.c;
+        document.getElementById('fat').value = item.f;
+        document.getElementById('foodSearch').value = '';
+        document.getElementById('searchResults').style.display = 'none';
+    }
+
     function calcGoals() {
         const weight = parseFloat(document.getElementById('goalWeight').value) || 0;
         const height = parseFloat(document.getElementById('goalHeight').value) || 0;
-        
-        // Calculation: Desired Weight x 11[cite: 2]
         document.getElementById('calTarget').innerText = (weight * 11).toLocaleString() + " calories";
-        // Calculation: 1g of protein per cm of height[cite: 2]
         document.getElementById('proteinTarget').innerText = height + "g protein";
-
         localStorage.setItem('goalWeight', weight);
         localStorage.setItem('goalHeight', height);
     }
@@ -92,16 +148,12 @@
         const saved = JSON.parse(localStorage.getItem('macroData') || '[]');
         const tableBody = document.getElementById('tableBody');
         tableBody.innerHTML = ''; 
-
         let tP = 0, tC = 0, tF = 0, tCal = 0, tS = 0;
-
         saved.forEach(e => {
             tP += e.p; tC += e.c; tF += e.f; tCal += e.cal; tS += e.s;
             const row = tableBody.insertRow(-1);
             row.innerHTML = `<td>${e.date}</td><td>${e.p}g</td><td>${e.c}g</td><td>${e.f}g</td><td>${e.cal}</td><td>${e.s.toLocaleString()}</td>`;
         });
-
-        // Insert running totals row at the top[cite: 2]
         const totalRow = tableBody.insertRow(0);
         totalRow.className = "total-row";
         totalRow.innerHTML = `<td>TOTALS</td><td>${tP}g</td><td>${tC}g</td><td>${tF}g</td><td>${tCal}</td><td>${tS.toLocaleString()}</td>`;
@@ -116,13 +168,10 @@
             f: parseFloat(document.getElementById('fat').value) || 0,
             s: parseInt(document.getElementById('steps').value) || 0
         };
-
         const saved = JSON.parse(localStorage.getItem('macroData') || '[]');
         saved.unshift(entry);
         localStorage.setItem('macroData', JSON.stringify(saved));
         updateTotals();
-        
-        // Clear daily entry inputs only[cite: 2]
         document.querySelectorAll('.grid-inputs input').forEach(i => i.value = '');
     }
 </script>
