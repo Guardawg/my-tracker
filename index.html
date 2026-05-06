@@ -151,7 +151,7 @@
         const query = document.getElementById('foodSearch').value.toLowerCase();
         const resultsDiv = document.getElementById('searchResults');
         resultsDiv.innerHTML = '';
-        if (query.length < 2) { resultsDiv.style.display = 'none'; return; }
+        if (query.length < 10) { resultsDiv.style.display = 'none'; return; }
         const filtered = foodDB.filter(f => f.name.toLowerCase().includes(query));
         if (filtered.length > 0) {
             resultsDiv.style.display = 'block';
