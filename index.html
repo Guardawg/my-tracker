@@ -9,22 +9,31 @@
         body { font-family: sans-serif; background-color: var(--bg); color: var(--text); padding: 20px; display: flex; flex-direction: column; align-items: center; }
         .container { max-width: 900px; width: 100%; }
         .card { background: var(--card); padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); margin-bottom: 1.5rem; }
-        .header { text-align: center; margin-bottom: 2rem; }
-        .header h1 { font-size: 2.5rem; color: var(--accent); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: -1px; }
+        
+        /* Header and Avatar Styles[cite: 2] */
+        .header { text-align: center; margin-bottom: 2rem; position: relative; }
+        .header h1 { font-size: 2.2rem; color: var(--accent); margin: 1rem 0; text-transform: uppercase; letter-spacing: -1px; }
+        .avatar-container { display: flex; justify-content: center; gap: 40px; margin-bottom: 10px; }
+        .avatar { font-size: 50px; background: #e2e8f0; border-radius: 50%; width: 90px; height: 90px; display: flex; align-items: center; justify-content: center; border: 3px solid var(--primary); box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        
         .guidelines { background: #eff6ff; border-left: 5px solid var(--primary); padding: 1rem; margin-bottom: 1.5rem; border-radius: 0 8px 8px 0; }
         .guidelines ul { margin: 0; padding-left: 1.2rem; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        @media (max-width: 600px) { .guidelines ul { grid-template-columns: 1fr; } }
+        @media (max-width: 600px) { .guidelines ul { grid-template-columns: 1fr; } .avatar { width: 70px; height: 70px; font-size: 40px; } }
+        
         .grid-inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
         .input-group { display: flex; flex-direction: column; }
         label { font-size: 0.8rem; font-weight: 600; margin-bottom: 0.3rem; color: #64748b; }
         input { padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 6px; }
         button { background-color: var(--primary); color: white; border: none; padding: 0.75rem; border-radius: 6px; font-weight: 600; cursor: pointer; width: 100%; }
+        
         .search-container { position: relative; margin-bottom: 1rem; }
         #searchResults { position: absolute; background: white; width: 100%; z-index: 10; border: 1px solid #ddd; border-radius: 6px; display: none; max-height: 200px; overflow-y: auto; }
         .search-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; }
         .search-item:hover { background: #f1f5f9; }
+        
         .goals-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
         .goal-result { font-size: 1.2rem; font-weight: bold; color: var(--primary); margin-top: 0.5rem; }
+        
         table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
         th, td { padding: 0.8rem; border-bottom: 1px solid #f1f5f9; text-align: left; font-size: 0.9rem; }
         .daily-sum-row { background-color: #f1f5f9; font-weight: bold; border-top: 2px solid #cbd5e1; }
@@ -36,9 +45,14 @@
 
 <div class="container">
     <div class="header">
+        <div class="avatar-container">
+            <div class="avatar" title="Muscle Man">💪👨</div>
+            <div class="avatar" title="Muscle Girl">💪👩</div>
+        </div>
         <h1>Drop 20+ lbs. in 90 Days</h1>
     </div>
 
+    <!-- Rest of the code remains the same[cite: 2] -->
     <div class="guidelines">
         <h3 style="margin-top: 0;">The 90-Day Protocol</h3>
         <ul>
@@ -107,6 +121,7 @@
 </div>
 
 <script>
+    // Database and Logic remain unchanged from the previous daily-reset version[cite: 2]
     const foodDB = [
         { name: "Egg (Large/1)", cal: 70, p: 6, c: 0, f: 5 },
         { name: "Chicken Breast (6oz)", cal: 280, p: 52, c: 0, f: 6 },
@@ -190,7 +205,6 @@
         const tableBody = document.getElementById('tableBody');
         tableBody.innerHTML = '';
 
-        // Group entries by date
         const grouped = saved.reduce((acc, obj) => {
             const key = obj.date;
             if (!acc[key]) acc[key] = { items: [], totals: { p: 0, c: 0, f: 0, cal: 0, s: 0, weight: '--' } };
@@ -208,13 +222,10 @@
 
         Object.keys(grouped).forEach(date => {
             const day = grouped[date];
-            
-            // Add Daily Total Row (The "Reset" visual)
             const dayRow = tableBody.insertRow(-1);
             dayRow.className = "daily-sum-row";
             dayRow.innerHTML = `<td>${date} TOTAL</td><td>${day.totals.weight}</td><td>${day.totals.p}g</td><td>${day.totals.c}g</td><td>${day.totals.f}g</td><td>${day.totals.cal}</td><td>${day.totals.s.toLocaleString()}</td>`;
 
-            // Individual Items for that day
             day.items.forEach(item => {
                 const row = tableBody.insertRow(-1);
                 row.innerHTML = `<td>Meal/Activity</td><td>--</td><td>${item.p}g</td><td>${item.c}g</td><td>${item.f}g</td><td>${item.cal}</td><td>${item.s.toLocaleString()}</td>`;
@@ -227,11 +238,10 @@
             grandTotal.s += day.totals.s;
         });
 
-        // Add 90-Day Grand Total Row
         const grandRow = tableBody.insertRow(0);
         grandRow.className = "grand-total-row";
         grandRow.innerHTML = `<td>90-DAY TOTAL</td><td>--</td><td>${grandTotal.p}g</td><td>${grandTotal.c}g</td><td>${grandTotal.f}g</td><td>${grandTotal.cal}</td><td>${grandTotal.s.toLocaleString()}</td>`;
     }
 </script>
 </body>
-</html>>
+</html>
