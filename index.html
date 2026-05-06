@@ -11,24 +11,12 @@
         .card { background: var(--card); padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); margin-bottom: 1.5rem; }
         
         .header { text-align: center; margin-bottom: 2rem; position: relative; }
-        
-        /* Updated Banner Image Styling */
-        .hero-banner { 
-            width: 100%; 
-            max-width: 800px; 
-            height: auto; 
-            border-radius: 12px; 
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); 
-            margin-bottom: 20px; 
-        }
-
+        .hero-banner { width: 100%; max-width: 800px; height: auto; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); margin-bottom: 20px; }
         .header h1 { font-size: 2.2rem; color: var(--accent); margin: 1rem 0; text-transform: uppercase; letter-spacing: -1px; }
-        .avatar-container { display: flex; justify-content: center; gap: 40px; margin-bottom: 10px; }
-        .avatar { font-size: 50px; background: #e2e8f0; border-radius: 50%; width: 90px; height: 90px; display: flex; align-items: center; justify-content: center; border: 3px solid var(--primary); box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         
         .guidelines { background: #eff6ff; border-left: 5px solid var(--primary); padding: 1rem; margin-bottom: 1.5rem; border-radius: 0 8px 8px 0; }
         .guidelines ul { margin: 0; padding-left: 1.2rem; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        @media (max-width: 600px) { .guidelines ul { grid-template-columns: 1fr; } .avatar { width: 70px; height: 70px; font-size: 40px; } }
+        @media (max-width: 600px) { .guidelines ul { grid-template-columns: 1fr; } }
         
         .grid-inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
         .input-group { display: flex; flex-direction: column; }
@@ -45,7 +33,10 @@
         th, td { padding: 0.8rem; border-bottom: 1px solid #f1f5f9; text-align: left; font-size: 0.9rem; vertical-align: top; }
         .daily-sum-row { background-color: #f1f5f9; font-weight: bold; border-top: 2px solid #cbd5e1; }
         .grand-total-row { background-color: #1e293b; color: white; font-weight: bold; }
-        .food-ref { font-size: 0.9rem; color: #1e293b; line-height: 1.6; }
+        
+        /* Suggestions Styling */
+        .food-ref { font-size: 0.95rem; line-height: 1.8; color: var(--text); }
+        .food-ref strong { color: var(--primary); }
         .workout-note { font-size: 0.8rem; color: #64748b; font-style: italic; margin-top: 4px; display: block; }
     </style>
 </head>
@@ -53,7 +44,7 @@
 
 <div class="container">
     <div class="header">
-        <img src="gym_banner.png" alt="Champion Gym Illustration" class="hero-banner">
+        <img src="gym_banner.png" alt="Gym Illustration" class="hero-banner">
         <h1>Drop 20+ lbs. in 90 Days</h1>
     </div>
 
@@ -69,6 +60,15 @@
             <li>Adjust calories every 2 weeks if needed</li>
             <li>Sleep is king (7-8 hours minimum)</li>
         </ul>
+    </div>
+
+    <div class="card">
+        <h3>Single-Ingredient Food Suggestions</h3>
+        <div class="food-ref">
+            <strong>Proteins:</strong> Eggs, Chicken, Fish, Steak, Turkey, Yogurt<br>
+            <strong>Carbohydrates:</strong> Potatoes, Quinoa, Rice, Oats, Fruits & Veggies<br>
+            <strong>Healthy Fats:</strong> Avocados, EVOO (Olive Oil), Raw Almonds, Chia Seeds
+        </div>
     </div>
 
     <div class="card">
@@ -95,7 +95,7 @@
             </div>
             <div class="input-group full-width">
                 <label>Workout Description (Optional)</label>
-                <textarea id="workoutDesc" placeholder="e.g. Chest/Triceps: 3x10 Bench Press, 3x12 Incline..."></textarea>
+                <textarea id="workoutDesc" placeholder="e.g. Chest/Triceps: 3x10 Bench Press..."></textarea>
             </div>
             <div class="input-group"><label>Current Weight</label><input type="number" step="0.1" id="currentWeight"></div>
             <div class="input-group"><label>Calories</label><input type="number" id="calories"></div>
@@ -119,7 +119,6 @@
 </div>
 
 <script>
-    // Logic remains the same, updateDisplay is updated for visual clarity
     window.onload = () => {
         document.getElementById('goalWeight').value = localStorage.getItem('goalWeight') || '';
         document.getElementById('goalHeight').value = localStorage.getItem('goalHeight') || '';
@@ -147,7 +146,7 @@
             c: parseFloat(document.getElementById('carbs').value) || 0,
             f: parseFloat(document.getElementById('fat').value) || 0,
             s: parseInt(document.getElementById('steps').value) || 0,
-            timestamp: Date.now() // Track most recent entry
+            timestamp: Date.now()
         };
         const saved = JSON.parse(localStorage.getItem('macroData') || '[]');
         saved.unshift(entry);
@@ -178,7 +177,6 @@
             acc[key].totals.f += obj.f;
             acc[key].totals.cal += obj.cal;
             
-            // Logic change: Only take the step count from the most recent entry
             if (obj.s > 0 && obj.timestamp >= acc[key].lastStepUpdate) {
                 acc[key].totals.s = obj.s;
                 acc[key].lastStepUpdate = obj.timestamp;
@@ -199,7 +197,6 @@
             day.items.forEach(item => {
                 const row = tableBody.insertRow(-1);
                 let workoutHTML = item.workout ? `<span class="workout-note">${item.workout}</span>` : '';
-                // Individual entry column for steps shows what was entered at that time
                 row.innerHTML = `<td><strong>${item.name}</strong>${workoutHTML}</td><td>--</td><td>${item.p}g</td><td>${item.c}g</td><td>${item.f}g</td><td>${item.cal}</td><td>${item.s > 0 ? item.s.toLocaleString() : '--'}</td>`;
             });
 
@@ -216,4 +213,5 @@
     }
 </script>
 </body>
+</html>
 </html>
