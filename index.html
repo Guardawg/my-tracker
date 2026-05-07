@@ -9,30 +9,24 @@
         body { font-family: sans-serif; background-color: var(--bg); color: var(--text); padding: 20px; display: flex; flex-direction: column; align-items: center; }
         .container { max-width: 900px; width: 100%; }
         .card { background: var(--card); padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); margin-bottom: 1.5rem; }
-        
         .header { text-align: center; margin-bottom: 2rem; position: relative; }
         .hero-banner { width: 100%; max-width: 800px; height: auto; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); margin-bottom: 20px; }
         .header h1 { font-size: 2.2rem; color: var(--accent); margin: 1rem 0; text-transform: uppercase; letter-spacing: -1px; }
-        
         .guidelines { background: #eff6ff; border-left: 5px solid var(--primary); padding: 1rem; margin-bottom: 1.5rem; border-radius: 0 8px 8px 0; }
         .guidelines ul { margin: 0; padding-left: 1.2rem; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         @media (max-width: 600px) { .guidelines ul { grid-template-columns: 1fr; } }
-        
         .grid-inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
         .input-group { display: flex; flex-direction: column; }
         .full-width { grid-column: 1 / -1; }
         label { font-size: 0.8rem; font-weight: 600; margin-bottom: 0.3rem; color: #64748b; }
         input, textarea { padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 6px; font-family: sans-serif; }
         textarea { resize: vertical; min-height: 60px; }
-        
         button { border: none; padding: 0.75rem; border-radius: 6px; font-weight: 600; cursor: pointer; width: 100%; color: white; transition: opacity 0.2s; }
         button:active { opacity: 0.8; }
         .btn-primary { background-color: var(--primary); margin-bottom: 10px; }
         .btn-sync { background-color: var(--success); }
-        
         .goals-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
         .goal-result { font-size: 1.2rem; font-weight: bold; color: var(--primary); margin-top: 0.5rem; }
-        
         table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
         th, td { padding: 0.8rem; border-bottom: 1px solid #f1f5f9; text-align: left; font-size: 0.9rem; vertical-align: top; }
         .daily-sum-row { background-color: #f1f5f9; font-weight: bold; border-top: 2px solid #cbd5e1; }
@@ -45,7 +39,7 @@
 
 <div class="container">
     <div class="header">
-        <img src="gym_banner.png" alt="Gym Illustration" class="hero-banner">
+        <img src="Copilot_20260506_124848.png" alt="Gym Illustration" class="hero-banner">
         <h1>Drop 20+ lbs. in 90 Days</h1>
     </div>
 
@@ -121,9 +115,8 @@
 </div>
 
 <script>
-    // --- CONFIGURATION ---
-    // REPLACE 'YOUR_DEPLOY_URL' WITH YOUR ACTUAL APPSCRIPT WEB APP URL
-    const SCRIPT_URL = 'YOUR_DEPLOY_URL';
+    // THE URL IS NOW SET BELOW
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyzelpusR5n39XAVOSxd_ArkZRVs5RFsBe2jp72wl2ieg1yBNSwcrtyyPIVmz1ebckPtA/exec';
 
     window.onload = () => {
         document.getElementById('goalWeight').value = localStorage.getItem('goalWeight') || '';
@@ -159,29 +152,26 @@
         localStorage.setItem('macroData', JSON.stringify(saved));
         updateDisplay();
         
-        // Clear fields
         ['mealName', 'workoutDesc', 'calories', 'protein', 'carbs', 'fat', 'steps'].forEach(id => document.getElementById(id).value = '');
     }
 
     async function syncToSheets() {
         const saved = JSON.parse(localStorage.getItem('macroData') || '[]');
         if (saved.length === 0) { alert("No data to sync!"); return; }
-        if (SCRIPT_URL === 'YOUR_DEPLOY_URL') { alert("Please set your Google AppScript URL in the code first."); return; }
 
         try {
-            const response = await fetch(SCRIPT_URL, {
+            await fetch(SCRIPT_URL, {
                 method: 'POST',
-                mode: 'no-cors', // Essential for AppScript
+                mode: 'no-cors',
                 body: JSON.stringify(saved)
             });
             
-            // Note: no-cors always returns status 0, so we assume success if no error is thrown
             localStorage.setItem('macroData', JSON.stringify([]));
             updateDisplay();
-            alert("Data sent to Sheets and cleared from local history!");
+            alert("Success! Your data has been synced to Google Sheets and cleared from this tracker.");
         } catch (error) {
             console.error('Error!', error.message);
-            alert("Sync failed. Check connection or Script URL.");
+            alert("Sync failed. Check your internet connection.");
         }
     }
 
