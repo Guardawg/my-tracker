@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Drop 20+ lbs. in 90 Days</title>
     <style>
-        :root { --primary: #2563eb; --bg: #f8fafc; --card: #ffffff; --text: #1e293b; --accent: #0f172a; }
+        :root { --primary: #2563eb; --bg: #f8fafc; --card: #ffffff; --text: #1e293b; --accent: #0f172a; --success: #059669; }
         body { font-family: sans-serif; background-color: var(--bg); color: var(--text); padding: 20px; display: flex; flex-direction: column; align-items: center; }
         .container { max-width: 900px; width: 100%; }
         .card { background: var(--card); padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); margin-bottom: 1.5rem; }
@@ -24,7 +24,11 @@
         label { font-size: 0.8rem; font-weight: 600; margin-bottom: 0.3rem; color: #64748b; }
         input, textarea { padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 6px; font-family: sans-serif; }
         textarea { resize: vertical; min-height: 60px; }
-        button { background-color: var(--primary); color: white; border: none; padding: 0.75rem; border-radius: 6px; font-weight: 600; cursor: pointer; width: 100%; }
+        
+        button { border: none; padding: 0.75rem; border-radius: 6px; font-weight: 600; cursor: pointer; width: 100%; color: white; transition: opacity 0.2s; }
+        button:active { opacity: 0.8; }
+        .btn-primary { background-color: var(--primary); margin-bottom: 10px; }
+        .btn-sync { background-color: var(--success); }
         
         .goals-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
         .goal-result { font-size: 1.2rem; font-weight: bold; color: var(--primary); margin-top: 0.5rem; }
@@ -33,10 +37,7 @@
         th, td { padding: 0.8rem; border-bottom: 1px solid #f1f5f9; text-align: left; font-size: 0.9rem; vertical-align: top; }
         .daily-sum-row { background-color: #f1f5f9; font-weight: bold; border-top: 2px solid #cbd5e1; }
         .grand-total-row { background-color: #1e293b; color: white; font-weight: bold; }
-        
-        /* Suggestions Styling */
-        .food-ref { font-size: 0.95rem; line-height: 1.8; color: var(--text); }
-        .food-ref strong { color: var(--primary); }
+        .food-ref { font-size: 0.95rem; line-height: 1.8; }
         .workout-note { font-size: 0.8rem; color: #64748b; font-style: italic; margin-top: 4px; display: block; }
     </style>
 </head>
@@ -67,7 +68,7 @@
         <div class="food-ref">
             <strong>Proteins:</strong> Eggs, Chicken, Fish, Steak, Turkey, Yogurt<br>
             <strong>Carbohydrates:</strong> Potatoes, Quinoa, Rice, Oats, Fruits & Veggies<br>
-            <strong>Healthy Fats:</strong> Avocados, EVOO (Olive Oil), Raw Almonds, Chia Seeds
+            <strong>Healthy Fats:</strong> Avocados, EVOO, Raw Almonds, Chia Seeds
         </div>
     </div>
 
@@ -104,7 +105,8 @@
             <div class="input-group"><label>Fat (g)</label><input type="number" id="fat"></div>
             <div class="input-group"><label>Steps (Final Count)</label><input type="number" id="steps"></div>
         </div>
-        <button onclick="addRow()">Log Progress</button>
+        <button class="btn-primary" onclick="addRow()">Log Progress</button>
+        <button class="btn-sync" onclick="syncToSheets()">Sync to Google Sheets & Clear Site</button>
     </div>
 
     <div class="card" style="overflow-x: auto;">
@@ -119,6 +121,10 @@
 </div>
 
 <script>
+    // --- CONFIGURATION ---
+    // REPLACE 'YOUR_DEPLOY_URL' WITH YOUR ACTUAL APPSCRIPT WEB APP URL
+    const SCRIPT_URL = 'YOUR_DEPLOY_URL';
+
     window.onload = () => {
         document.getElementById('goalWeight').value = localStorage.getItem('goalWeight') || '';
         document.getElementById('goalHeight').value = localStorage.getItem('goalHeight') || '';
@@ -153,13 +159,30 @@
         localStorage.setItem('macroData', JSON.stringify(saved));
         updateDisplay();
         
-        document.getElementById('mealName').value = '';
-        document.getElementById('workoutDesc').value = '';
-        document.getElementById('calories').value = '';
-        document.getElementById('protein').value = '';
-        document.getElementById('carbs').value = '';
-        document.getElementById('fat').value = '';
-        document.getElementById('steps').value = '';
+        // Clear fields
+        ['mealName', 'workoutDesc', 'calories', 'protein', 'carbs', 'fat', 'steps'].forEach(id => document.getElementById(id).value = '');
+    }
+
+    async function syncToSheets() {
+        const saved = JSON.parse(localStorage.getItem('macroData') || '[]');
+        if (saved.length === 0) { alert("No data to sync!"); return; }
+        if (SCRIPT_URL === 'YOUR_DEPLOY_URL') { alert("Please set your Google AppScript URL in the code first."); return; }
+
+        try {
+            const response = await fetch(SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors', // Essential for AppScript
+                body: JSON.stringify(saved)
+            });
+            
+            // Note: no-cors always returns status 0, so we assume success if no error is thrown
+            localStorage.setItem('macroData', JSON.stringify([]));
+            updateDisplay();
+            alert("Data sent to Sheets and cleared from local history!");
+        } catch (error) {
+            console.error('Error!', error.message);
+            alert("Sync failed. Check connection or Script URL.");
+        }
     }
 
     function updateDisplay() {
@@ -170,24 +193,20 @@
         const grouped = saved.reduce((acc, obj) => {
             const key = obj.date;
             if (!acc[key]) acc[key] = { items: [], totals: { p: 0, c: 0, f: 0, cal: 0, s: 0, weight: '--' }, lastStepUpdate: 0 };
-            
             acc[key].items.push(obj);
             acc[key].totals.p += obj.p;
             acc[key].totals.c += obj.c;
             acc[key].totals.f += obj.f;
             acc[key].totals.cal += obj.cal;
-            
             if (obj.s > 0 && obj.timestamp >= acc[key].lastStepUpdate) {
                 acc[key].totals.s = obj.s;
                 acc[key].lastStepUpdate = obj.timestamp;
             }
-            
             if (obj.w) acc[key].totals.weight = obj.w;
             return acc;
         }, {});
 
         let grandTotal = { p: 0, c: 0, f: 0, cal: 0, s: 0 };
-
         Object.keys(grouped).forEach(date => {
             const day = grouped[date];
             const dayRow = tableBody.insertRow(-1);
@@ -200,11 +219,7 @@
                 row.innerHTML = `<td><strong>${item.name}</strong>${workoutHTML}</td><td>--</td><td>${item.p}g</td><td>${item.c}g</td><td>${item.f}g</td><td>${item.cal}</td><td>${item.s > 0 ? item.s.toLocaleString() : '--'}</td>`;
             });
 
-            grandTotal.p += day.totals.p;
-            grandTotal.c += day.totals.c;
-            grandTotal.f += day.totals.f;
-            grandTotal.cal += day.totals.cal;
-            grandTotal.s += day.totals.s;
+            grandTotal.p += day.totals.p; grandTotal.c += day.totals.c; grandTotal.f += day.totals.f; grandTotal.cal += day.totals.cal; grandTotal.s += day.totals.s;
         });
 
         const grandRow = tableBody.insertRow(0);
@@ -213,5 +228,4 @@
     }
 </script>
 </body>
-</html>
 </html>
